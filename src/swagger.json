@@ -1,0 +1,145 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Edu Sponsor API",
+      "version": "1.0.0",
+      "description": "API to create a sponsor for education"
+    },
+    "servers": [
+      {
+        "url": "http://localhost:5000",
+        "description": "development server"
+      },
+      {
+        "url": "https://edu-sponsor-api.onrender.com/",
+        "description": "production server"
+      }
+    ],
+    "components": {
+      "securitySchemes": {
+        "token": {
+          "type": "apiKey",
+          "scheme":"bearer",
+          "bearerFormat": "JWT",
+          "name":"Authorization",
+          "in":"header"
+        }
+      }
+    },
+    "paths": {
+        "/api/auth/register":{
+            "post":{
+              "tags":["user"],
+              "summary":"enter user",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "example":"james9"
+                        },
+                        "age": {
+                          "type": "string",
+                          "example":"20"
+                        },
+                        "email": {
+                          "type": "string",
+                          "example":"james9@gmail.com"
+                        },
+                        "password": {
+                          "type": "string",
+                          "example":"james12345"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {
+                  "description": "OK",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string"
+                          },
+                          "token": {
+                            "type": "string"
+                          },
+                          "userId": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "example": {
+                        "message": "User registered successfully",
+                        "token": "jwt_token_here",
+                        "userId": "user_id_here"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/auth/login":{
+            "post":{
+              "tags":["user"],
+              "summary":"login user",
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "email": {
+                          "type": "string",
+                          "example":"james9@gmail.com"
+                        },
+                        "password": {
+                          "type": "string",
+                          "example":"james12345"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {
+                  "description": "OK",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string"
+                          },
+                          "token": {
+                            "type": "string"
+                          },
+                          "userId": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "example": {
+                        "message": "Login successful",
+                        "token": "jwt_token_here",
+                        "userId": "user_id_here"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+    }
+}
