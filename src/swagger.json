@@ -140,6 +140,635 @@
                 }
               }
             }
+          },
+          "/api/schools": {
+            "get": {
+              "tags": ["schools"],
+              "summary": "Get all schools",
+              "responses": {
+                "200": {
+                  "description": "List of schools",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "Id": {
+                              "type": "string"
+                            },
+                            "Name": {
+                              "type": "string"
+                            },
+                            "Description": {
+                              "type": "string"
+                            },
+                            "District": {
+                              "type": "string"
+                            },
+                            "Status": {
+                              "type": "boolean"
+                            },
+                            "CreatedAt": {
+                              "type": "string"
+                            },
+                            "UpdatedAt": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "post": {
+              "tags": ["schools"],
+              "summary": "Create a new school",
+              "security": [
+                {
+                  "token": []
+                }
+              ],
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "example": "Example School"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "A great school for students"
+                        },
+                        "district": {
+                          "type": "string",
+                          "example": "Central District"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "201": {
+                  "description": "School created successfully",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string"
+                          },
+                          "school": {
+                            "type": "object",
+                            "properties": {
+                              "Id": {
+                                "type": "string"
+                              },
+                              "Name": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "example": {
+                        "message": "School created successfully",
+                        "school": {
+                          "Id": "school_id_here",
+                          "Name": "Example School"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "/api/schools/{id}": {
+            "get": {
+              "tags": ["schools"],
+              "summary": "Get school by ID",
+              "parameters": [
+                {
+                  "in": "path",
+                  "name": "id",
+                  "required": true,
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "School ID"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "School details",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "Id": {
+                            "type": "string"
+                          },
+                          "Name": {
+                            "type": "string"
+                          },
+                          "Description": {
+                            "type": "string"
+                          },
+                          "District": {
+                            "type": "string"
+                          },
+                          "Status": {
+                            "type": "boolean"
+                          },
+                          "CreatedAt": {
+                            "type": "string"
+                          },
+                          "UpdatedAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "School not found"
+                }
+              }
+            },
+            "put": {
+              "tags": ["schools"],
+              "summary": "Update school",
+              "security": [
+                {
+                  "token": []
+                }
+              ],
+              "parameters": [
+                {
+                  "in": "path",
+                  "name": "id",
+                  "required": true,
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "School ID"
+                }
+              ],
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "district": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {
+                  "description": "School updated successfully"
+                },
+                "404": {
+                  "description": "School not found"
+                }
+              }
+            },
+            "delete": {
+              "tags": ["schools"],
+              "summary": "Delete school",
+              "security": [
+                {
+                  "token": []
+                }
+              ],
+              "parameters": [
+                {
+                  "in": "path",
+                  "name": "id",
+                  "required": true,
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "School ID"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "School deleted successfully"
+                },
+                "404": {
+                  "description": "School not found"
+                },
+                "400": {
+                  "description": "Cannot delete school with associated students"
+                }
+              }
+            }
+          },
+          "/api/schools/{id}/students": {
+            "get": {
+              "tags": ["schools"],
+              "summary": "Get all students for a school",
+              "parameters": [
+                {
+                  "in": "path",
+                  "name": "id",
+                  "required": true,
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "School ID"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "List of students",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "Id": {
+                              "type": "string"
+                            },
+                            "Name": {
+                              "type": "string"
+                            },
+                            "Age": {
+                              "type": "string"
+                            },
+                            "Gender": {
+                              "type": "string"
+                            },
+                            "Address": {
+                              "type": "string"
+                            },
+                            "Phone": {
+                              "type": "string"
+                            },
+                            "Email": {
+                              "type": "string"
+                            },
+                            "ParentName": {
+                              "type": "string"
+                            },
+                            "SchoolId": {
+                              "type": "string"
+                            },
+                            "CreatedAt": {
+                              "type": "string"
+                            },
+                            "UpdatedAt": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "School not found"
+                }
+              }
+            }
+          },
+          "/api/students": {
+            "get": {
+              "tags": ["students"],
+              "summary": "Get all students",
+              "responses": {
+                "200": {
+                  "description": "List of students",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "Id": {
+                              "type": "string"
+                            },
+                            "Name": {
+                              "type": "string"
+                            },
+                            "Age": {
+                              "type": "string"
+                            },
+                            "Gender": {
+                              "type": "string"
+                            },
+                            "Address": {
+                              "type": "string"
+                            },
+                            "Phone": {
+                              "type": "string"
+                            },
+                            "Email": {
+                              "type": "string"
+                            },
+                            "ParentName": {
+                              "type": "string"
+                            },
+                            "SchoolId": {
+                              "type": "string"
+                            },
+                            "CreatedAt": {
+                              "type": "string"
+                            },
+                            "UpdatedAt": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "post": {
+              "tags": ["students"],
+              "summary": "Create a new student",
+              "security": [
+                {
+                  "token": []
+                }
+              ],
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "example": "John Doe"
+                        },
+                        "age": {
+                          "type": "string",
+                          "example": "15"
+                        },
+                        "gender": {
+                          "type": "string",
+                          "example": "Male"
+                        },
+                        "address": {
+                          "type": "string",
+                          "example": "123 Main St"
+                        },
+                        "phone": {
+                          "type": "string",
+                          "example": "1234567890"
+                        },
+                        "email": {
+                          "type": "string",
+                          "example": "john@example.com"
+                        },
+                        "parentName": {
+                          "type": "string",
+                          "example": "Jane Doe"
+                        },
+                        "schoolId": {
+                          "type": "string",
+                          "example": "uuid-of-school"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "201": {
+                  "description": "Student created successfully",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string"
+                          },
+                          "student": {
+                            "type": "object",
+                            "properties": {
+                              "Id": {
+                                "type": "string"
+                              },
+                              "Name": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "example": {
+                        "message": "Student created successfully",
+                        "student": {
+                          "Id": "student_id_here",
+                          "Name": "John Doe"
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Email already in use or invalid input"
+                },
+                "404": {
+                  "description": "School not found"
+                }
+              }
+            }
+          },
+          "/api/students/{id}": {
+            "get": {
+              "tags": ["students"],
+              "summary": "Get student by ID",
+              "parameters": [
+                {
+                  "in": "path",
+                  "name": "id",
+                  "required": true,
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "Student ID"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Student details",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "Id": {
+                            "type": "string"
+                          },
+                          "Name": {
+                            "type": "string"
+                          },
+                          "Age": {
+                            "type": "string"
+                          },
+                          "Gender": {
+                            "type": "string"
+                          },
+                          "Address": {
+                            "type": "string"
+                          },
+                          "Phone": {
+                            "type": "string"
+                          },
+                          "Email": {
+                            "type": "string"
+                          },
+                          "ParentName": {
+                            "type": "string"
+                          },
+                          "SchoolId": {
+                            "type": "string"
+                          },
+                          "CreatedAt": {
+                            "type": "string"
+                          },
+                          "UpdatedAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "404": {
+                  "description": "Student not found"
+                }
+              }
+            },
+            "put": {
+              "tags": ["students"],
+              "summary": "Update student",
+              "security": [
+                {
+                  "token": []
+                }
+              ],
+              "parameters": [
+                {
+                  "in": "path",
+                  "name": "id",
+                  "required": true,
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "Student ID"
+                }
+              ],
+              "requestBody": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "age": {
+                          "type": "string"
+                        },
+                        "gender": {
+                          "type": "string"
+                        },
+                        "address": {
+                          "type": "string"
+                        },
+                        "phone": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "parentName": {
+                          "type": "string"
+                        },
+                        "schoolId": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {
+                  "description": "Student updated successfully"
+                },
+                "400": {
+                  "description": "Email already in use by another student"
+                },
+                "404": {
+                  "description": "Student not found or School not found"
+                }
+              }
+            },
+            "delete": {
+              "tags": ["students"],
+              "summary": "Delete student",
+              "security": [
+                {
+                  "token": []
+                }
+              ],
+              "parameters": [
+                {
+                  "in": "path",
+                  "name": "id",
+                  "required": true,
+                  "schema": {
+                    "type": "string"
+                  },
+                  "description": "Student ID"
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Student deleted successfully"
+                },
+                "404": {
+                  "description": "Student not found"
+                }
+              }
+            }
           }
     }
+    
 }
