@@ -1,5 +1,5 @@
-import { pgTable, varchar, timestamp, uuid, numeric, date, text, pgEnum } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { pgTable, varchar, timestamp, uuid, numeric, date, text, pgEnum, boolean } from "drizzle-orm/pg-core";
+import { Name, relations } from "drizzle-orm";
 
 export const Role = pgEnum("role", ["Admin", "School", "Sponsor", "Student"]);
 
@@ -17,14 +17,22 @@ export const User = pgTable("user", {
 export const School = pgTable("school", {
   Id: uuid().primaryKey().defaultRandom(),
   Name: varchar({ length: 255 }).notNull(),
+  Description: varchar({ length: 255 }).notNull(),
   District: varchar({ length: 255 }).notNull(),
+  Status: boolean().default(false),
   CreatedAt: timestamp("created_at").defaultNow(),
   UpdatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const StudentProfile = pgTable("student_profile", {
   Id: uuid().primaryKey().defaultRandom(),
-  UserId: uuid().notNull().references(() => User.Id),
+  Name: varchar({ length: 255 }).notNull(),
+  Age: varchar({ length: 10 }).notNull(),
+  Gender: varchar({ length: 10 }).notNull(),
+  Address: varchar({ length: 255 }).notNull(),
+  Phone: varchar({ length: 10 }).notNull(),
+  Email: varchar({ length: 255 }).notNull().unique(),
+  ParentName: varchar({ length: 255 }).notNull(),
   SchoolId: uuid().notNull().references(() => School.Id),
   CreatedAt: timestamp("created_at").defaultNow(),
   UpdatedAt: timestamp("updated_at").defaultNow(),
@@ -82,6 +90,6 @@ export const SponsorshipsRelations = relations(Sponsorship, ({ one, many }) => (
 }));
 
 export const StudentProfilesRelations = relations(StudentProfile, ({ one }) => ({
-  User: one(User, { fields: [StudentProfile.UserId], references: [User.Id] }),
+  User: one(User, { fields: [StudentProfile.Id], references: [User.Id] }),
   School: one(School, { fields: [StudentProfile.SchoolId], references: [School.Id] }),
 }));
