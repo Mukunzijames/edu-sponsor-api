@@ -11,7 +11,7 @@ dotenv.config();
 
 export const register = async (req: Request<{}, {}, RegisterUserInput>, res: Response) => {
   try {
-    const { name, age, email, password } = req.body;
+    const { name, age, email, password , role} = req.body;
 
     // Validate input
     if (!name || age === undefined || !email || !password) {
@@ -34,7 +34,7 @@ export const register = async (req: Request<{}, {}, RegisterUserInput>, res: Res
       Age: age.toString(),
       Email: email,
       Password: hashedPassword,
-      Role: "Student", // Default role
+      Role : role as any
     }).returning({ Id: User.Id });
 
     // Generate JWT token
