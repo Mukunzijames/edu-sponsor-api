@@ -8,6 +8,7 @@ export interface RegisterUserInput {
   age: string;
   email: string;
   password: string;
+  role: string;
 }
 
 export interface LoginUserInput {
