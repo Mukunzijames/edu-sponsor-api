@@ -9,7 +9,7 @@ router.get('/', getAllSchools as unknown as RequestHandler);
 router.get('/:id', getSchoolById as unknown as RequestHandler);
 
 // Protected routes
-router.post('/', authMiddleware as unknown as RequestHandler    , createSchool as unknown as RequestHandler);
+router.post('/',  createSchool as unknown as RequestHandler);
 router.put('/:id', authMiddleware as unknown as RequestHandler, updateSchool as unknown as RequestHandler);
 router.delete('/:id', authMiddleware as unknown as RequestHandler, deleteSchool as unknown as RequestHandler);
 
