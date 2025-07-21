@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Stripe Payment</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .container {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            background-color: #6772e5;
+            color: white;
+            border: 0;
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #5469d4;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #e9ecef;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .hidden {
+            display: none;
+        }
+        .nav-links {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .nav-links a {
+            color: #6772e5;
+            margin: 0 10px;
+            text-decoration: none;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        .card-element {
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: white;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid #ced4da;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+            background-color: #f1f3f5;
+        }
+        .tab.active {
+            background-color: #6772e5;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test Stripe Payment</h1>
+        <p>Choose your preferred payment method to test Stripe integration.</p>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="checkout">Stripe Checkout</div>
+            <div class="tab" data-tab="webhook">Direct Webhook</div>
+        </div>
+
+        <div id="checkout-tab" class="tab-content active">
+            <p>Use Stripe Checkout to complete a payment with the Stripe test interface.</p>
+            
+            <div class="form-group">
+                <label for="checkout-amount">Amount ($)</label>
+                <input type="number" id="checkout-amount" min="1" value="50">
+            </div>
+
+            <div class="form-group">
+                <label for="checkout-studentId">Student ID</label>
+                <input type="text" id="checkout-studentId" value="cca9206c-173c-4719-9c75-f76a25242615">
+            </div>
+
+            <button id="checkout-button">Pay with Stripe</button>
+        </div>
+
+        <div id="webhook-tab" class="tab-content">
+            <p>Directly simulate a webhook event without going through the Stripe interface.</p>
+            
+            <form id="webhook-form" action="/api/payments/test-webhook" method="post">
+                <div class="form-group">
+                    <label for="type">Event Type</label>
+                    <select id="type" name="type">
+                        <option value="payment_intent.succeeded">Payment Intent Succeeded</option>
+                        <option value="checkout.session.completed">Checkout Session Completed</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="sponsorId">Sponsor ID</label>
+                    <input type="text" id="sponsorId" name="sponsorId" value="31f3cf6e-d19d-46d5-8ddf-387a9f3ffae8">
+                </div>
+
+                <div class="form-group">
+                    <label for="studentId">Student ID</label>
+                    <input type="text" id="studentId" name="studentId" value="cca9206c-173c-4719-9c75-f76a25242615">
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">Amount ($)</label>
+                    <input type="number" id="amount" name="amount" min="1" value="50">
+                </div>
+
+                <button type="submit">Simulate Payment</button>
+            </form>
+        </div>
+
+        <div id="result" class="result hidden">
+            <pre id="result-json"></pre>
+        </div>
+
+        <div class="nav-links">
+            <a href="/view-donations.html">View All Donations</a> | 
+            <a href="/checkout-demo.html">Checkout Demo</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // Remove active class from all tabs and contents
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    
+                    // Add active class to current tab and content
+                    this.classList.add('active');
+                    document.getElementById(tabId + '-tab').classList.add('active');
+                });
+            });
+
+            // Stripe Checkout
+            const stripe = Stripe('pk_test_51Ris8r02sRfQp3UGePQBFY6O1AHM0dr2xB61APONlZ4KpI82z6Yp7HROQxIKEFrX1adrHGi6s9wOT4JcNpry0Y7200fZcAN812');
+            const checkoutButton = document.getElementById('checkout-button');
+            
+            checkoutButton.addEventListener('click', async function() {
+                const amount = document.getElementById('checkout-amount').value;
+                const studentId = document.getElementById('checkout-studentId').value;
+                
+                if (!amount || !studentId) {
+                    alert('Please enter both amount and student ID');
+                    return;
+                }
+                
+                try {
+                    checkoutButton.disabled = true;
+                    checkoutButton.textContent = 'Processing...';
+                    
+                    // Get your token from local storage or wherever you store it
+                    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzMWYzY2Y2ZS1kMTlkLTQ2ZDUtOGRkZi0zODdhOWYzZmZhZTgiLCJpYXQiOjE3NTMwNjUyMTIsImV4cCI6MTc1MzE1MTYxMn0.q2RNjd-mfCWUAT1fP5EcGuo9Mjolt1IqJLYZ2tERsZA';
+                    
+                    // Call your backend to create a checkout session
+                    const response = await fetch('http://localhost:5000/api/payments/create-checkout-session', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            amount: parseFloat(amount),
+                            studentId: studentId
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    if (data.success && data.url) {
+                        // Redirect to Stripe Checkout
+                        window.location.href = data.url;
+                    } else {
+                        throw new Error(data.message || 'Failed to create checkout session');
+                    }
+                } catch (error) {
+                    alert('Error: ' + (error.message || 'An error occurred'));
+                    console.error('Error:', error);
+                } finally {
+                    checkoutButton.disabled = false;
+                    checkoutButton.textContent = 'Pay with Stripe';
+                }
+            });
+
+            // Direct webhook form
+            const webhookForm = document.getElementById('webhook-form');
+            
+            // No need to add event listener for form submission
+            // The form will submit naturally and follow the redirect
+        });
+    </script>
+</body>
+</html> 
