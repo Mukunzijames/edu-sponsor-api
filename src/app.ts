@@ -12,8 +12,11 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
-
+// Update the CORS configuration
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'https://edu-sponsor-gules.vercel.app',
+    credentials: true,
+  }));
 // Use raw body middleware for Stripe webhooks
 app.use(rawBodyMiddleware);
 app.use(jsonParserMiddleware);
