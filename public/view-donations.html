@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Donations</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .container {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        th {
+            background-color: #e9ecef;
+            font-weight: 600;
+        }
+        tr:hover {
+            background-color: #f1f3f5;
+        }
+        .button {
+            display: inline-block;
+            background-color: #6772e5;
+            color: white;
+            border: 0;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            margin-top: 20px;
+        }
+        .button:hover {
+            background-color: #5469d4;
+        }
+        .no-donations {
+            padding: 20px;
+            text-align: center;
+            color: #6c757d;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>All Donations</h1>
+        <p>View all donations made through the platform.</p>
+        
+        <div id="loading" class="loading">Loading donations...</div>
+        <div id="no-donations" class="no-donations" style="display: none;">No donations found.</div>
+        <table id="donations-table" style="display: none;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Amount</th>
+                    <th>Date</th>
+                    <th>Sponsor</th>
+                    <th>Student</th>
+                </tr>
+            </thead>
+            <tbody id="donations-body">
+                <!-- Donations will be inserted here -->
+            </tbody>
+        </table>
+        
+        <div style="margin-top: 20px;">
+            <a href="/test-webhook.html" class="button">Simulate Payment</a>
+            <a href="/checkout-demo.html" class="button">Checkout Demo</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingDiv = document.getElementById('loading');
+            const noDonationsDiv = document.getElementById('no-donations');
+            const donationsTable = document.getElementById('donations-table');
+            const donationsBody = document.getElementById('donations-body');
+            
+            // Fetch all donations
+            fetch('http://localhost:5000/api/payments/donations/all')
+                .then(response => response.json())
+                .then(data => {
+                    loadingDiv.style.display = 'none';
+                    
+                    if (!data.success || !data.data || data.data.length === 0) {
+                        noDonationsDiv.style.display = 'block';
+                        return;
+                    }
+                    
+                    donationsTable.style.display = 'table';
+                    
+                    // Render donations
+                    data.data.forEach(donation => {
+                        const row = document.createElement('tr');
+                        
+                        // Format date
+                        const donatedAt = new Date(donation.DonatedAt);
+                        const formattedDate = donatedAt.toLocaleString();
+                        
+                        // Get sponsor and student names
+                        const sponsorName = donation.Sponsorship?.Sponsor?.Name || 'Unknown';
+                        const studentName = donation.Sponsorship?.Student?.Name || 'Unknown';
+                        
+                        row.innerHTML = `
+                            <td>${donation.Id}</td>
+                            <td>$${parseFloat(donation.Amount).toFixed(2)}</td>
+                            <td>${formattedDate}</td>
+                            <td>${sponsorName}</td>
+                            <td>${studentName}</td>
+                        `;
+                        
+                        donationsBody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    loadingDiv.style.display = 'none';
+                    noDonationsDiv.style.display = 'block';
+                    noDonationsDiv.textContent = 'Error loading donations: ' + error.message;
+                    console.error('Error fetching donations:', error);
+                });
+        });
+    </script>
+</body>
+</html> 

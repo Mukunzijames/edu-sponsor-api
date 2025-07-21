@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Complete</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .container {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 40px 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-top: 50px;
+        }
+        h1 {
+            color: #28a745;
+        }
+        .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #28a745;
+        }
+        .details {
+            margin-top: 30px;
+            text-align: left;
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #6772e5;
+            color: white;
+            border: 0;
+            padding: 12px 24px;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            margin-top: 30px;
+        }
+        .button:hover {
+            background-color: #5469d4;
+        }
+        .button-group {
+            margin-top: 30px;
+        }
+        .button-group .button {
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">✓</div>
+        <h1>Payment Successfully Processed!</h1>
+        <p>Your donation has been successfully processed and recorded in our database.</p>
+        
+        <div class="details">
+            <p><strong>Payment ID:</strong> <span id="payment-id"></span></p>
+            <p><strong>Amount:</strong> $<span id="amount">50.00</span></p>
+            <p><strong>Status:</strong> <span style="color: #28a745; font-weight: bold;">Completed</span></p>
+        </div>
+        
+        <div class="button-group">
+            <a href="/view-donations.html" class="button">View All Donations</a>
+            <a href="/test-webhook.html" class="button">Make Another Donation</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get payment details from URL query parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentId = urlParams.get('payment_id') || 'TEST-' + Date.now();
+            const amount = urlParams.get('amount') || '50.00';
+            
+            document.getElementById('payment-id').textContent = paymentId;
+            document.getElementById('amount').textContent = amount;
+        });
+    </script>
+</body>
+</html> 
