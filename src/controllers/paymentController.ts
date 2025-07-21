@@ -91,8 +91,8 @@ export const testCheckoutSession = async (req: Request, res: Response) => {
         },
       ],
       mode: 'payment',
-      success_url: `http://localhost:5000/api/payments/test-success`,
-      cancel_url: `http://localhost:5000/api/payments/test-cancel`,
+      success_url: `${process.env.FRONTEND_URL}/api/payments/test-success`,
+      cancel_url: `${process.env.FRONTEND_URL}/api/payments/test-cancel`,
     });
 
     return res.status(200).json({
@@ -239,8 +239,8 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
         },
       ],
       mode: 'payment',
-      success_url: `http://localhost:5000/api/payments/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `http://localhost:5000/payment-cancel.html`,
+      success_url: `https://edu-sponsor-api.onrender.com/api/payments/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://edu-sponsor-api.onrender.com/payment-cancel.html`,
       metadata: {
         sponsorId,
         studentId,
