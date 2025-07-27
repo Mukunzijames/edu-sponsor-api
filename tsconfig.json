@@ -95,5 +95,13 @@
       /* Completeness */
       // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
       "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
-    }, "include": ["src/**/*.ts", "test/**/*.ts"],
+    },
+  "ts-node": {
+    "esm": false,
+    "experimentalSpecifierResolution": "node",
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  },
+  "include": ["src/**/*.ts"],
   }

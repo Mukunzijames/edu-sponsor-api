@@ -1,0 +1,1 @@
+[![codecov](https://codecov.io/gh/Mukunzijames/edu-sponsor-api/graph/badge.svg?token=4L0BHVF2P7)](https://codecov.io/gh/Mukunzijames/edu-sponsor-api)

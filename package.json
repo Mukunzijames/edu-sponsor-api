@@ -1,9 +1,13 @@
 {
   "name": "edu-sponsor-api",
   "version": "1.0.0",
+  "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "cross-env NODE_ENV=test TS_NODE_PROJECT=tsconfig.json TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc mocha",
+    "test:watch": "cross-env TS_NODE_PROJECT=tsconfig.json mocha --watch",
+    "test:coverage": "cross-env TS_NODE_PROJECT=tsconfig.json nyc --reporter=html --reporter=text mocha",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
     "dev": "nodemon  src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
@@ -24,6 +28,40 @@
   },
   "homepage": "https://github.com/Mukunzijames/edu-sponsor-api#readme",
   "description": "",
+  "nyc": {
+    "extends": "@istanbuljs/nyc-config-typescript",
+    "check-coverage": true,
+    "lines": 65,
+    "functions": 90,
+    "branches": 35,
+    "statements": 65,
+    "per-file-ignores": [
+      "src/db/*",
+      "src/middleware/stripe.ts"
+    ],
+    "include": [
+      "src/**/*.ts"
+    ],
+    "exclude": [
+      "src/db/*",
+      "src/test/*",
+      "src/server.ts",
+      "src/swagger.json",
+      "src/middleware/stripe.ts",
+      "**/*.d.ts",
+      "coverage/**",
+      "dist/**"
+    ],
+    "reporter": [
+      "text",
+      "html",
+      "lcov"
+    ],
+    "all": true,
+    "cache": true,
+    "report-dir": "coverage",
+    "temp-dir": ".nyc_output"
+  },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",
     "bcrypt": "^6.0.0",
@@ -40,13 +78,22 @@
     "ts-node": "^10.9.2"
   },
   "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@types/bcrypt": "^5.0.2",
+    "@types/chai": "^5.2.2",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/mocha": "^10.0.10",
     "@types/node": "^24.0.10",
+    "@types/supertest": "^6.0.3",
     "@types/swagger-ui-express": "^4.1.8",
+    "chai": "^5.2.1",
+    "cross-env": "^10.0.0",
     "drizzle-kit": "^0.31.4",
+    "mocha": "^11.7.1",
+    "nyc": "^17.1.0",
+    "supertest": "^7.1.4",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }
