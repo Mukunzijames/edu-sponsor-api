@@ -9,6 +9,9 @@ import { User } from '../db/schema';
 dotenv.config();
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const backendUrl = process.env.BACKEND_URL;
+const frontendUrl = process.env.FRONTEND_URL;
+
 if (!stripeSecretKey) {
   console.error('Stripe secret key is not defined');
   process.exit(1);
@@ -23,32 +26,26 @@ interface UserInterface {
   Name: string;
   Email: string;
   Role: string;
-  userId?: string; // Added for processSuccessfulPayment
+  userId?: string;
 }
 
-// Test endpoint that doesn't require authentication
 export const testPaymentIntent = async (req: Request, res: Response) => {
   try {
     const { amount } = req.body;
-
     if (!amount) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Amount is required' 
+      return res.status(400).json({
+        success: false,
+        message: 'Amount is required'
       });
     }
-
-    // Create a payment intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
+      amount: Math.round(amount * 100),
       currency: 'usd',
       payment_method_types: ['card'],
       metadata: {
         test: 'true'
       },
     });
-
-    // Return client secret to the client
     return res.status(200).json({
       success: true,
       clientSecret: paymentIntent.client_secret,
@@ -63,19 +60,15 @@ export const testPaymentIntent = async (req: Request, res: Response) => {
   }
 };
 
-// Test checkout session that doesn't require authentication
 export const testCheckoutSession = async (req: Request, res: Response) => {
   try {
     const { amount } = req.body;
-
     if (!amount) {
       return res.status(400).json({
         success: false,
         message: 'Amount is required'
       });
     }
-
-    // Create checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -85,16 +78,15 @@ export const testCheckoutSession = async (req: Request, res: Response) => {
             product_data: {
               name: 'Test Donation',
             },
-            unit_amount: Math.round(amount * 100), // Convert to cents
+            unit_amount: Math.round(amount * 100),
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL}/api/payments/test-success`,
-      cancel_url: `${process.env.FRONTEND_URL}/api/payments/test-cancel`,
+      success_url: `${backendUrl}/api/payments/test-success`,
+      cancel_url: `${backendUrl}/api/payments/test-cancel`,
     });
-
     return res.status(200).json({
       success: true,
       sessionId: session.id,
@@ -110,32 +102,26 @@ export const testCheckoutSession = async (req: Request, res: Response) => {
   }
 };
 
-// Test success endpoint
 export const testSuccess = async (req: Request, res: Response) => {
   return res.status(200).send('<html><body><h1>Payment Successful!</h1><p>Your test payment was successful.</p></body></html>');
 };
 
-// Test cancel endpoint
 export const testCancel = async (req: Request, res: Response) => {
   return res.status(200).send('<html><body><h1>Payment Cancelled</h1><p>Your test payment was cancelled.</p></body></html>');
 };
 
-// Create a payment intent for sponsorship
 export const createPaymentIntent = async (req: Request, res: Response) => {
   try {
     const { amount, studentId } = req.body;
     const user = req.user as unknown as UserInterface;
-
     if (!amount || !studentId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Amount and student ID are required' 
+      return res.status(400).json({
+        success: false,
+        message: 'Amount and student ID are required'
       });
     }
-
-    // Create a payment intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
+      amount: Math.round(amount * 100),
       currency: 'usd',
       payment_method_types: ['card'],
       metadata: {
@@ -143,8 +129,6 @@ export const createPaymentIntent = async (req: Request, res: Response) => {
         studentId,
       },
     });
-
-    // Return client secret to the client
     return res.status(200).json({
       success: true,
       clientSecret: paymentIntent.client_secret,
@@ -158,11 +142,10 @@ export const createPaymentIntent = async (req: Request, res: Response) => {
   }
 };
 
-// Process successful payment and create donation record
 export const processPayment = async (req: Request, res: Response) => {
   try {
     const { paymentIntentId } = req.body;
-    
+
     if (!paymentIntentId) {
       return res.status(400).json({
         success: false,
@@ -170,9 +153,8 @@ export const processPayment = async (req: Request, res: Response) => {
       });
     }
 
-    // Retrieve payment intent to verify payment
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-    
+
     if (paymentIntent.status !== 'succeeded') {
       return res.status(400).json({
         success: false,
@@ -181,10 +163,7 @@ export const processPayment = async (req: Request, res: Response) => {
     }
 
     const { sponsorId, studentId } = paymentIntent.metadata;
-    const amountPaid = paymentIntent.amount / 100; // Convert from cents
-
-    // Check if sponsorship exists, if not create one
-    // TODO: Implement DB operations to create/update sponsorship and donation records
+    const amountPaid = paymentIntent.amount / 100;
 
     return res.status(200).json({
       success: true,
@@ -205,13 +184,10 @@ export const processPayment = async (req: Request, res: Response) => {
   }
 };
 
-// Create checkout session for one-time donation
 export const createCheckoutSession = async (req: Request, res: Response) => {
   try {
     const { studentId, amount } = req.body;
     const user = req.user as unknown as UserInterface;
-
-    console.log('Creating checkout session with:', { studentId, amount, user });
 
     if (!studentId || !amount) {
       return res.status(400).json({
@@ -222,7 +198,6 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
 
     const sponsorId = user.userId || user.Id;
 
-    // Create checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -233,14 +208,14 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
               name: 'Student Sponsorship Donation',
               description: `Donation for student ${studentId}`,
             },
-            unit_amount: Math.round(amount * 100), // Convert to cents
+            unit_amount: Math.round(amount * 100),
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `https://edu-sponsor-api.onrender.com/api/payments/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `https://edu-sponsor-api.onrender.com/payment-cancel.html`,
+      success_url: `${backendUrl}/api/payments/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${backendUrl}/payment-cancel.html`,
       metadata: {
         sponsorId,
         studentId,
@@ -263,12 +238,11 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
   }
 };
 
-// Process successful payment callback
 export const processSuccessfulPayment = async (req: Request, res: Response) => {
   try {
     const { session_id, payment_id } = req.query;
     const sessionId = session_id || payment_id;
-    
+
     if (!sessionId) {
       return res.status(400).json({
         success: false,
@@ -276,9 +250,8 @@ export const processSuccessfulPayment = async (req: Request, res: Response) => {
       });
     }
 
-    // Retrieve the session to verify payment
     const session = await stripe.checkout.sessions.retrieve(sessionId as string);
-    
+
     if (session.payment_status !== 'paid') {
       return res.status(400).json({
         success: false,
@@ -287,16 +260,14 @@ export const processSuccessfulPayment = async (req: Request, res: Response) => {
     }
 
     const { sponsorId, studentId } = session.metadata || {};
-    const amountPaid = session.amount_total ? session.amount_total / 100 : 0; // Convert from cents
+    const amountPaid = session.amount_total ? session.amount_total / 100 : 0;
 
-    // Create donation record in database
     if (sponsorId && studentId && amountPaid) {
       await createDonationRecord(sponsorId, studentId, amountPaid);
     }
 
-    // Redirect to success page or return success response
     if (req.headers.accept?.includes('text/html')) {
-      return res.redirect(`/payment-complete.html?payment_id=${sessionId}&amount=${amountPaid}`);
+      return res.redirect(`${frontendUrl}/payment-complete?payment_id=${sessionId}&amount=${amountPaid}`);
     }
 
     return res.status(200).json({
@@ -319,14 +290,12 @@ export const processSuccessfulPayment = async (req: Request, res: Response) => {
   }
 };
 
-// Handle Stripe webhook events
 export const handleWebhook = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature'];
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!sig || !endpointSecret) {
     console.log('Missing signature or endpoint secret, proceeding with test mode');
-    // For testing purposes, we'll still process the webhook without verification
     try {
       const event = req.body;
       await processWebhookEvent(event);
@@ -338,9 +307,7 @@ export const handleWebhook = async (req: Request, res: Response) => {
   }
 
   let event;
-
   try {
-    // Use rawBody from the request object set by our middleware
     const rawBody = (req as any).rawBody;
     event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);
     await processWebhookEvent(event);
@@ -349,11 +316,9 @@ export const handleWebhook = async (req: Request, res: Response) => {
     return res.status(400).json({ success: false, message: 'Webhook signature verification failed' });
   }
 
-  // Return a 200 response to acknowledge receipt of the event
   res.status(200).json({ received: true });
 };
 
-// Test webhook for simulating a successful payment
 export const testWebhook = async (req: Request, res: Response) => {
   try {
     const { type, sponsorId, studentId, amount } = req.body;
@@ -365,10 +330,9 @@ export const testWebhook = async (req: Request, res: Response) => {
       });
     }
 
-    // Create a mock event based on the provided type
     let mockEvent;
     let paymentId;
-    
+
     if (type === 'payment_intent.succeeded') {
       paymentId = `pi_test_${Date.now()}`;
       mockEvent = {
@@ -376,7 +340,7 @@ export const testWebhook = async (req: Request, res: Response) => {
         data: {
           object: {
             id: paymentId,
-            amount: amount * 100, // Convert to cents
+            amount: amount * 100,
             metadata: {
               sponsorId,
               studentId,
@@ -391,7 +355,7 @@ export const testWebhook = async (req: Request, res: Response) => {
         data: {
           object: {
             id: paymentId,
-            amount_total: amount * 100, // Convert to cents
+            amount_total: amount * 100,
             metadata: {
               sponsorId,
               studentId,
@@ -407,17 +371,13 @@ export const testWebhook = async (req: Request, res: Response) => {
       });
     }
 
-    // Process the mock event
     await processWebhookEvent(mockEvent);
 
-    // Check if the request wants HTML response
     const acceptHeader = req.headers.accept || '';
     if (acceptHeader.includes('text/html')) {
-      // Redirect to payment complete page
-      return res.redirect(`/payment-complete.html?payment_id=${paymentId}&amount=${amount}`);
+      return res.redirect(`${frontendUrl}/payment-complete.html?payment_id=${paymentId}&amount=${amount}`);
     }
 
-    // Return JSON response for API calls
     return res.status(200).json({
       success: true,
       message: `Test ${type} event processed successfully`,
@@ -433,13 +393,10 @@ export const testWebhook = async (req: Request, res: Response) => {
   }
 };
 
-// Process webhook events
 async function processWebhookEvent(event: any) {
-  // Handle the event
   switch (event.type) {
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object;
-      // Handle successful payment
       console.log('PaymentIntent was successful:', paymentIntent.id);
       await createDonationRecord(
         paymentIntent.metadata?.sponsorId,
@@ -449,7 +406,6 @@ async function processWebhookEvent(event: any) {
       break;
     case 'checkout.session.completed':
       const session = event.data.object;
-      // Handle successful checkout session
       console.log('Checkout session completed:', session.id);
       await createDonationRecord(
         session.metadata?.sponsorId,
@@ -466,7 +422,6 @@ async function processWebhookEvent(event: any) {
   }
 }
 
-// Create donation record in database
 async function createDonationRecord(sponsorId: string, studentId: string, amount: number) {
   try {
     if (!sponsorId || !studentId) {
@@ -476,12 +431,10 @@ async function createDonationRecord(sponsorId: string, studentId: string, amount
 
     console.log('Creating donation record:', { sponsorId, studentId, amount });
 
-    // First, check if the sponsor exists in the user table
     let sponsorExists = await db.query.User.findFirst({
       where: eq(User.Id, sponsorId),
     });
 
-    // If sponsor doesn't exist, create a temporary one
     if (!sponsorExists) {
       console.log('Creating temporary sponsor user');
       await db.insert(User).values({
@@ -494,12 +447,10 @@ async function createDonationRecord(sponsorId: string, studentId: string, amount
       });
     }
 
-    // Check if the student exists in the user table
     let studentExists = await db.query.User.findFirst({
       where: eq(User.Id, studentId),
     });
 
-    // If student doesn't exist, create a temporary one
     if (!studentExists) {
       console.log('Creating temporary student user');
       await db.insert(User).values({
@@ -512,7 +463,6 @@ async function createDonationRecord(sponsorId: string, studentId: string, amount
       });
     }
 
-    // Now check if a sponsorship exists
     const existingSponsorship = await db.query.Sponsorship.findFirst({
       where: and(
         eq(Sponsorship.SponsorId, sponsorId),
@@ -521,37 +471,32 @@ async function createDonationRecord(sponsorId: string, studentId: string, amount
     });
 
     let sponsorshipId;
-
     if (existingSponsorship) {
       sponsorshipId = existingSponsorship.Id;
       console.log('Using existing sponsorship:', sponsorshipId);
     } else {
-      // Create a new sponsorship
       console.log('Creating new sponsorship');
-      
-      // Format date as ISO string for PostgreSQL date type
+
       const today = new Date().toISOString().split('T')[0];
-      
-      // Insert new sponsorship
+
       const newSponsorships = await db.insert(Sponsorship).values({
         SponsorId: sponsorId,
         StudentId: studentId,
         StartDate: today,
         Status: 'Active',
       }).returning();
-      
+
       if (!newSponsorships || newSponsorships.length === 0) {
         throw new Error('Failed to create sponsorship');
       }
-      
+
       sponsorshipId = newSponsorships[0].Id;
       console.log('Created new sponsorship:', sponsorshipId);
     }
 
-    // Create donation record
     const newDonations = await db.insert(Donation).values({
       SponsorshipId: sponsorshipId,
-      Amount: amount.toString(), // Convert to string for numeric type
+      Amount: amount.toString(),
     }).returning();
 
     if (!newDonations || newDonations.length === 0) {
@@ -566,15 +511,10 @@ async function createDonationRecord(sponsorId: string, studentId: string, amount
   }
 }
 
-// Get payment methods for a user
 export const getPaymentMethods = async (req: Request, res: Response) => {
   try {
     const user = req.user as unknown as UserInterface;
-    
-    // Assuming you store Stripe customer ID in your database
-    // TODO: Retrieve Stripe customer ID from your database
 
-    // For now, we'll just return an empty array
     return res.status(200).json({
       success: true,
       data: [],
@@ -587,4 +527,4 @@ export const getPaymentMethods = async (req: Request, res: Response) => {
       message: 'Failed to retrieve payment methods',
     });
   }
-}; 
+};

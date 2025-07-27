@@ -85,7 +85,7 @@ export const getSponsorshipsBySponsor = async (req: Request, res: Response) => {
     const user = req.user as unknown as UserInterface;
 
     const sponsorships = await db.query.Sponsorship.findMany({
-      where: eq(Sponsorship.SponsorId, user.Id),
+      // where: eq(Sponsorship.SponsorId, user.Id),
       with: {
         Student: true,
       },

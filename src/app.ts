@@ -14,8 +14,8 @@ const app = express();
 
 // Update the CORS configuration
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'https://edu-sponsor-gules.vercel.app',
-    credentials: true,
+  origin: '*',
+  credentials: true,
   }));
 // Use raw body middleware for Stripe webhooks
 app.use(rawBodyMiddleware);
