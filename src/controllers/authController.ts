@@ -90,7 +90,13 @@ export const login = async (req: Request<{}, {}, LoginUserInput>, res: Response)
     return res.status(200).json({
       message: 'Login successful',
       token,
-      userId: user.Id
+      userId: user.Id,
+      userdata: {
+        Name: user.Name,
+        Age: user.Age,
+        Email: user.Email,
+        Role: user.Role
+      }
     });
   } catch (error) {
     console.error('Login error:', error);

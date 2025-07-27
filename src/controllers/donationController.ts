@@ -1,7 +1,7 @@
-import { Request, Response } from 'express';
-import { eq } from 'drizzle-orm';
-import { db } from '../db';
-import { Donation, Sponsorship, User } from '../db/schema';
+import { Request, Response } from "express";
+import { eq } from "drizzle-orm";
+import { db } from "../db";
+import { Donation, Sponsorship, User } from "../db/schema";
 
 interface UserInterface {
   Id: string;
@@ -19,7 +19,7 @@ export const createDonation = async (req: Request, res: Response) => {
     if (!sponsorshipId || !amount) {
       return res.status(400).json({
         success: false,
-        message: 'Sponsorship ID and amount are required',
+        message: "Sponsorship ID and amount are required",
       });
     }
 
@@ -31,39 +31,46 @@ export const createDonation = async (req: Request, res: Response) => {
     if (!sponsorship) {
       return res.status(404).json({
         success: false,
-        message: 'Sponsorship not found',
+        message: "Sponsorship not found",
       });
     }
 
     if (sponsorship.SponsorId !== user.Id) {
       return res.status(403).json({
         success: false,
-        message: 'You are not authorized to make donations for this sponsorship',
+        message:
+          "You are not authorized to make donations for this sponsorship",
       });
     }
 
     // Create donation record
-    const newDonation = await db.insert(Donation).values({
-      SponsorshipId: sponsorshipId,
-      Amount: amount,
-    }).returning();
+    const newDonation = await db
+      .insert(Donation)
+      .values({
+        SponsorshipId: sponsorshipId,
+        Amount: amount,
+      })
+      .returning();
 
     return res.status(201).json({
       success: true,
-      message: 'Donation created successfully',
+      message: "Donation created successfully",
       data: newDonation[0],
     });
   } catch (error) {
-    console.error('Error creating donation:', error);
+    console.error("Error creating donation:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to create donation',
+      message: "Failed to create donation",
     });
   }
 };
 
 // Get donations by sponsorship ID
-export const getDonationsBySponsorship = async (req: Request, res: Response) => {
+export const getDonationsBySponsorship = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const { sponsorshipId } = req.params;
     const user = req.user as unknown as UserInterface;
@@ -76,15 +83,18 @@ export const getDonationsBySponsorship = async (req: Request, res: Response) => 
     if (!sponsorship) {
       return res.status(404).json({
         success: false,
-        message: 'Sponsorship not found',
+        message: "Sponsorship not found",
       });
     }
 
     // Check if user is authorized (either sponsor or student)
-    if (sponsorship.SponsorId !== user.Id && sponsorship.StudentId !== user.Id) {
+    if (
+      sponsorship.SponsorId !== user.Id &&
+      sponsorship.StudentId !== user.Id
+    ) {
       return res.status(403).json({
         success: false,
-        message: 'You are not authorized to view these donations',
+        message: "You are not authorized to view these donations",
       });
     }
 
@@ -96,14 +106,14 @@ export const getDonationsBySponsorship = async (req: Request, res: Response) => 
 
     return res.status(200).json({
       success: true,
-      message: 'Donations retrieved successfully',
+      message: "Donations retrieved successfully",
       data: donations,
     });
   } catch (error) {
-    console.error('Error retrieving donations:', error);
+    console.error("Error retrieving donations:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to retrieve donations',
+      message: "Failed to retrieve donations",
     });
   }
 };
@@ -113,29 +123,26 @@ export const getDonationsBySponsor = async (req: Request, res: Response) => {
   try {
     const user = req.user as unknown as UserInterface;
 
-    // Get all sponsorships for the user
-    const sponsorships = await db.query.Sponsorship.findMany({
-      where: eq(Sponsorship.SponsorId, user.Id),
-    });
+    const sponsorships = await db.query.Sponsorship.findMany({});
 
-    const sponsorshipIds = sponsorships.map(s => s.Id);
+    const sponsorshipIds = sponsorships.map((s) => s.Id);
 
-    // Get all donations for these sponsorships
     const donations = await db.query.Donation.findMany({
-      where: (donation, { inArray }) => inArray(donation.SponsorshipId, sponsorshipIds),
+      where: (donation, { inArray }) =>
+        inArray(donation.SponsorshipId, sponsorshipIds),
       orderBy: (donation, { desc }) => [desc(donation.DonatedAt)],
     });
 
     return res.status(200).json({
       success: true,
-      message: 'Donations retrieved successfully',
+      message: "Donations retrieved successfully",
       data: donations,
     });
   } catch (error) {
-    console.error('Error retrieving donations:', error);
+    console.error("Error retrieving donations:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to retrieve donations',
+      message: "Failed to retrieve donations",
     });
   }
 };
@@ -149,31 +156,35 @@ export const getAllDonations = async (req: Request, res: Response) => {
     });
 
     // Get sponsorships for these donations
-    const sponsorshipIds = [...new Set(donations.map(d => d.SponsorshipId))];
+    const sponsorshipIds = [...new Set(donations.map((d) => d.SponsorshipId))];
     const sponsorships = await db.query.Sponsorship.findMany({
-      where: (sponsorship, { inArray }) => inArray(sponsorship.Id, sponsorshipIds),
+      where: (sponsorship, { inArray }) =>
+        inArray(sponsorship.Id, sponsorshipIds),
     });
 
     // Get users for these sponsorships
-    const userIds = [...new Set([
-      ...sponsorships.map(s => s.SponsorId),
-      ...sponsorships.map(s => s.StudentId),
-    ])];
+    const userIds = [
+      ...new Set([
+        ...sponsorships.map((s) => s.SponsorId),
+        ...sponsorships.map((s) => s.StudentId),
+      ]),
+    ];
     const users = await db.query.User.findMany({
       where: (user, { inArray }) => inArray(user.Id, userIds),
     });
 
     // Create a map of users by ID
-    const userMap = new Map(users.map(user => [user.Id, user]));
+    const userMap = new Map(users.map((user) => [user.Id, user]));
     // Create a map of sponsorships by ID
-    const sponsorshipMap = new Map(sponsorships.map(s => [s.Id, s]));
+    const sponsorshipMap = new Map(sponsorships.map((s) => [s.Id, s]));
 
     // Enrich donations with sponsorship and user data
-    const enrichedDonations = donations.map(donation => {
+    const enrichedDonations = donations.map((donation) => {
+
       const sponsorship = sponsorshipMap.get(donation.SponsorshipId);
       let sponsor = null;
       let student = null;
-      
+
       if (sponsorship) {
         sponsor = userMap.get(sponsorship.SponsorId);
         student = userMap.get(sponsorship.StudentId);
@@ -181,24 +192,26 @@ export const getAllDonations = async (req: Request, res: Response) => {
 
       return {
         ...donation,
-        Sponsorship: sponsorship ? {
-          ...sponsorship,
-          Sponsor: sponsor,
-          Student: student,
-        } : null,
+        Sponsorship: sponsorship
+          ? {
+              ...sponsorship,
+              Sponsor: sponsor,
+              Student: student,
+            }
+          : null,
       };
     });
 
     return res.status(200).json({
       success: true,
-      message: 'All donations retrieved successfully',
+      message: "All donations retrieved successfully",
       data: enrichedDonations,
     });
   } catch (error) {
-    console.error('Error retrieving all donations:', error);
+    console.error("Error retrieving all donations:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to retrieve all donations',
+      message: "Failed to retrieve all donations",
     });
   }
 };
@@ -206,27 +219,31 @@ export const getAllDonations = async (req: Request, res: Response) => {
 // Get donation statistics for a sponsor
 export const getDonationStats = async (req: Request, res: Response) => {
   try {
-    const user = req.user as unknown as   UserInterface;
+    const user = req.user as unknown as UserInterface;
 
     // Get all sponsorships for the user
     const sponsorships = await db.query.Sponsorship.findMany({
       where: eq(Sponsorship.SponsorId, user.Id),
     });
 
-    const sponsorshipIds = sponsorships.map(s => s.Id);
+    const sponsorshipIds = sponsorships.map((s) => s.Id);
 
     // Get all donations for these sponsorships
     const donations = await db.query.Donation.findMany({
-      where: (donation, { inArray }) => inArray(donation.SponsorshipId, sponsorshipIds),
+      where: (donation, { inArray }) =>
+        inArray(donation.SponsorshipId, sponsorshipIds),
     });
 
     // Calculate statistics
-    const totalAmount = donations.reduce((sum, donation) => sum + Number(donation.Amount), 0);
+    const totalAmount = donations.reduce(
+      (sum, donation) => sum + Number(donation.Amount),
+      0
+    );
     const donationCount = donations.length;
 
     return res.status(200).json({
       success: true,
-      message: 'Donation statistics retrieved successfully',
+      message: "Donation statistics retrieved successfully",
       data: {
         totalAmount,
         donationCount,
@@ -234,10 +251,10 @@ export const getDonationStats = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error('Error retrieving donation statistics:', error);
+    console.error("Error retrieving donation statistics:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to retrieve donation statistics',
+      message: "Failed to retrieve donation statistics",
     });
   }
-}; 
+};

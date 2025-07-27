@@ -216,7 +216,7 @@
                     checkoutButton.textContent = 'Processing...';
                     
                     // Get your token from local storage or wherever you store it
-                    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIzMWYzY2Y2ZS1kMTlkLTQ2ZDUtOGRkZi0zODdhOWYzZmZhZTgiLCJpYXQiOjE3NTMwNjUyMTIsImV4cCI6MTc1MzE1MTYxMn0.q2RNjd-mfCWUAT1fP5EcGuo9Mjolt1IqJLYZ2tERsZA';
+                    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxNTJmMGYzMS0xNjIwLTRhNzUtOWNlMS1mNWJlNGEwOWJmY2MiLCJpYXQiOjE3NTM0NzcxNjAsImV4cCI6MTc1MzU2MzU2MH0.1b6yCCev7xl334CHwxiMyWMCrzxbjBrLoFI1UlRjM9o';
                     
                     // Call your backend to create a checkout session
                     const response = await fetch('http://localhost:5000/api/payments/create-checkout-session', {
